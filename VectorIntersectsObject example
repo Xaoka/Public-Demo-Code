@@ -1,0 +1,81 @@
+public function canSeePoint(X,Y):Boolean
+{
+			if(wallList==undefined){trace("No walls to use");return false}
+			var DX:Number;
+			var DY:Number;
+			var M:Number;
+			var Md:Number;
+			
+			var inBounds = true;
+			//check for all walls if there is one blocking vision
+			for each (var wall in wallList)
+			{
+				//Create an equation for the sight line
+				var MapSize = 600/40;
+				//We can disregard the current tile if it falls outside the relavent area
+				inBounds = true;
+				//sizeCorrectionFactor
+				var SCF = wall.hitbox.width;
+				if(wall.x+SCF < Math.min(this.x,X) || wall.x > Math.max(this.x,X) || wall.y+SCF < Math.min(this.y,Y) || wall.y > Math.max(this.y,Y))
+				{
+					inBounds = false;
+				}
+				//Test if given x or y, we pass through a side of the tile for vision block
+				//if (lines have a cross point) (and that cross point inside tile bounds)
+				if(inBounds && vectorIntersectsObject(this.x,this.y,X,Y,wall))
+				{
+						return false;
+				}
+			}
+			return true;
+		}
+		
+		function vectorIntersectsObject(startX:Number,startY:Number,endX:Number,endY:Number,obj:Object)
+		{
+			var DX = startX - endX;
+			var DY = startY - endY;
+			//edge cases where the object is aligned and therefore may div0
+				//going directly up/down
+			if(DY==0 && startY > obj.y && startY < obj.y+obj.height){
+				return true;
+			}
+			if(DX==0 && startX > obj.x && startX < obj.x+obj.width){
+				return true;
+			}
+			// (M is vertical gradient, Md horizontal) (Ch is C value horizontal, Cv is vertical)
+			var M = DY/DX;
+			var Md = DX/DY;
+			var Ch = M*(-this.x)+(this.y)
+			var Cv = Md*(-this.y)+(this.x)
+			//top of box
+			if(vectorIntersectsLine(Md,Ch,obj.y,obj.x,obj.x+obj.width))
+			{
+				return true;
+			}
+			//bottom of box
+			if(vectorIntersectsLine(Md,Ch,obj.y+obj.height,obj.x,obj.x+obj.width))
+			{
+				return true;
+			}
+			//left of box
+			if(vectorIntersectsLine(M,Cv,obj.x,obj.x,obj.y+obj.height))
+			{
+				return true;
+			}
+			//right of box
+			if(vectorIntersectsLine(M,Cv,obj.x+obj.width,obj.y,obj.y+obj.height))
+			{
+				return true;
+			}
+			return false;
+		}
+		function vectorIntersectsLine(Md:Number,C:Number,lineValue:Number,leftX:Number,rightX:Number)
+		{
+			
+			var intersectPoint = ((lineValue) - C) * Md;
+			if(intersectPoint > leftX && intersectPoint < rightX)
+			{
+				return true;
+			}
+			return false;
+		}
