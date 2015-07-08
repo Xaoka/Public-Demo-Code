@@ -1,0 +1,90 @@
+function moveTo(xCord:int,yCord:int)
+{
+			if(xCord < 0 || xCord > mapSize || yCord < 0 || yCord > mapSize)
+			{
+				return;
+			}
+			//Find current position
+			var currentPosition = [Math.floor(this.x/tileSize),Math.floor(this.y/tileSize)];
+			//Make a nodegraph
+			weightGrid = new Array();
+			for(var i=0;i<mapSize;i++){
+				weightGrid[i] = new Array();
+				for(var j=0;j<mapSize;j++){
+					weightGrid[i][j] = new PathingNode(i,j);
+				}
+			}
+			toCheckList = new Array();
+			toCheckList.push(weightGrid[currentPosition[0]][currentPosition[1]]);
+			//Do Pathing
+			var crashCount = 0;
+			while(toCheckList.length>0 && crashCount < 400)
+			{
+				crashCount++;
+				//Select cheapest to finalise
+				var cheapest = toCheckList[0];
+				for(var node=1;node<toCheckList.length;node++)
+				{
+					if(toCheckList[node].XPos==xCord && toCheckList[node].YPos==yCord)
+					{
+						break;
+						break;
+					}
+					if(toCheckList[node].getEst() < cheapest.getEst())
+					{
+						cheapest = toCheckList[node];
+					}
+				}
+					//Remove from list
+				toCheckList.splice(toCheckList.indexOf(cheapest),1);
+				cheapest.setFinalised(true);
+				//add it's neighbours to check, estimate cost, Can't be a wall or finalised
+				//We need to find neighbours relative to cheapest (i.e. new) node
+					//Left
+				addNeighbour(cheapest.XPos-1,cheapest.YPos, cheapest);
+					//Right
+				addNeighbour(cheapest.XPos+1,cheapest.YPos, cheapest);
+					//Down
+				addNeighbour(cheapest.XPos,cheapest.YPos+1, cheapest);
+					//Up
+				addNeighbour(cheapest.XPos,cheapest.YPos-1, cheapest);
+			}
+			//Backwards algorithm
+			var pathNode = weightGrid[xCord][yCord];
+			while(pathNode.fromNode != null)
+			{
+				walkPath.push(pathNode);
+				pathNode = pathNode.fromNode;
+			}
+			walkPath.reverse();
+		}
+}
+public class PathingNode
+{
+	var estValue = 0;
+	var finalised = false;
+	public var XPos = 0;
+	public var YPos = 0;
+	public var fromNode = null;
+	public function PathingNode(thisX,thisY)
+	{
+		XPos = thisX;
+		YPos = thisY;
+	}
+	public function setEst(amount:int)
+	{
+		estValue = amount;
+	}
+	public function getEst()
+	{
+		return estValue;
+	}
+	public function setFinalised(isFinal:Boolean)
+	{
+		finalised = isFinal;
+	}
+	public function getFinalised()
+	{
+		return finalised;
+	}
+}
