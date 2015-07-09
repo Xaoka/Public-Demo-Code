@@ -1,0 +1,59 @@
+private boolean containsWithOmissions(String search, String word)
+	{
+		int searchCounter = 0;
+		int wordCounter = 0;
+		int editDistance = 0;
+		while(searchCounter<search.length() && wordCounter < word.length())
+		{
+			if(search.charAt(searchCounter)==word.charAt(wordCounter))
+			{
+				searchCounter++;
+				wordCounter++;
+			}
+			else
+			{
+				wordCounter++;
+				editDistance++;
+			}
+			//If we found all the characters in the search within that word
+			if(searchCounter==search.length())
+			{
+				return true;
+			}
+			//If we got to the end of the word without finding all of the search
+			if(wordCounter==word.length() && editDistance <= 2)
+			{
+				return false;
+			}
+		}
+		return false;
+	}
+	private boolean containsWithInsertions(String search, String word)
+	{
+		int searchCounter = 0;
+		int wordCounter = 0;
+		while(searchCounter<search.length() && wordCounter < word.length())
+		{
+			if(search.charAt(searchCounter)==word.charAt(wordCounter))
+			{
+				searchCounter++;
+				wordCounter++;
+			}
+			else
+			{
+				searchCounter++;
+				editDistance++;
+			}
+			//If we found all the characters in the search within that word
+			if(searchCounter==search.length())
+			{
+				return true;
+			}
+			//If we got to the end of the word without finding all of the search
+			if(wordCounter==word.length() && editDistance <= 2)
+			{
+				return false;
+			}
+		}
+		return false;
+	}
