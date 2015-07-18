@@ -1,0 +1,147 @@
+function generateLevel()
+		{
+		/*
+		*The variables here allow you to change how the rooms will look,
+		*minRoomSize lets you define a minimum size for rooms
+		*variance allows you to control the max size of rooms (i.e. minRoomSize+variance)
+		*dimensionvariance allows you to control how different one dimension of a room is from the other (For wide rooms ect)
+		*/
+			var finished = false;
+			var resetNeeded = true;
+			var minRoomSize = 3;
+			var variance = 1;
+			var dimensionVariance = 2;
+			//create room objects and set their places
+			while(!finished)
+			{
+				finished = false;
+				//generate rooms
+				if(resetNeeded)
+				{
+					for(var i=0;i<roomCount;i++)
+					{
+						var wid = minRoomSize+Math.round(Math.random()*variance);
+						var hig = wid+Math.round(Math.random()*dimensionVariance);
+						roomList[i] = (new Room(wid, hig));
+						roomList[i].setPosition(1+Math.floor(Math.random()*(gridSize-wid-3)), 1+Math.floor(Math.random()*(gridSize-wid-3)))
+					}
+					resetNeeded = false;
+				}
+				//seperate rooms
+				var hasOverlaps = true;
+				var count = 0;
+				while(hasOverlaps)
+				{
+					count++;
+					if(count>(minRoomSize+variance)*2)
+					{
+						resetNeeded = true;
+						break;
+						break;
+					}
+					hasOverlaps = false;
+					for(i=0;i<roomCount;i++)
+					{
+						for(var j=i;j<roomCount;j++)
+						{
+							if(i!=j && roomList[i].overlaps(roomList[j]))
+							{
+								roomList[i].moveAwayFrom(roomList[j]);
+								roomList[j].moveAwayFrom(roomList[i]);
+								//trace("Moving "+i+" away from "+j);
+								hasOverlaps = true;
+							}
+						}
+					}
+				}
+				finished = true;
+			}
+			//Draw
+			for(i=0;i<roomCount;i++)
+			{
+				for(j=0;j<roomList[i].getWidth();j++)
+				{
+					for(var k=0;k<roomList[i].getHeight();k++)
+					{
+						removeWallAt(j+roomList[i].getX(),k+roomList[i].getY());
+					}
+				}
+			}
+			
+			//connect rooms
+			var shouldConnect = false;
+			//if two rooms satisfy the following
+			trace("Room connection code could do with cleaning..");
+			for(i=0;i<roomCount;i++)
+			{
+				for(j=0;j<roomCount;j++)
+				{
+					//aren't the same room
+					//aren't touching
+					if(i!=j && !roomList[i].overlaps(roomList[j]))
+					{
+						//overlap on one axis that they don't overlap any others
+							//if they overlap on an axis
+						var xOverlap = axisOverlap(roomList[i].getX() , roomList[i].getX()+roomList[i].getWidth() , roomList[j].getX() , roomList[j].getX()+roomList[j].getWidth());
+						var yOverlap = axisOverlap(roomList[i].getY() , roomList[i].getY()+roomList[i].getHeight() , roomList[j].getY() , roomList[j].getY()+roomList[j].getHeight());
+						
+						//Find a point on each, closest to the other that they have overlapping axis for
+						var leftInsideEdge = Math.max(roomList[i].getX(),roomList[j].getX());
+						var rightInsideEdge = Math.min(roomList[i].getX()+roomList[i].getWidth(),roomList[j].getX()+roomList[j].getWidth());
+						var topInsideEdge = Math.min(roomList[i].getY()+roomList[i].getHeight(),roomList[j].getY()+roomList[j].getHeight());
+						var bottomInsideEdge = Math.max(roomList[i].getY(),roomList[j].getY());
+						//Make a corridor
+						//if they are lined up on the xAxis (I.e. above/below)
+						if(xOverlap)
+						{
+							//check no other room is in the way on the X axis
+							var axisClear = true;
+							for(k=0;k<roomCount;k++)
+							{
+								if(k!=i && k!=j)
+								{
+									//if another room cuts the space between their overlap
+									if(axisOverlap(leftInsideEdge , rightInsideEdge , roomList[k].getX() , roomList[k].getX()+roomList[k].getWidth()))
+									{
+										//axisClear = false;
+										//break;
+									}
+								}
+							}
+							if(axisClear)
+							{
+									//join them on the rough centre
+								var centrePoint = Math.floor((leftInsideEdge+rightInsideEdge)/2);
+								makeCorridor(centrePoint,centrePoint,topInsideEdge,bottomInsideEdge);
+							}
+						}
+						//if they are lined up on the yAxis (I.e. left/right)
+						
+						if(yOverlap)
+						{
+							axisClear = true;
+							for(k=0;k<roomCount;k++)
+							{
+								if(k!=i && k!=j)
+								{
+									//if another room cuts the space between their overlap
+									if(axisOverlap(topInsideEdge , bottomInsideEdge , roomList[k].getY() , roomList[k].getY()+roomList[k].getHeight()))
+									{
+										//axisClear = false;
+										//break;
+									}
+								}
+							}
+							if(axisClear)
+							{
+									//join them on the rough centre
+								centrePoint = Math.floor((bottomInsideEdge+topInsideEdge)/2);
+								makeCorridor(rightInsideEdge,leftInsideEdge,centrePoint,centrePoint);
+							}
+						}
+						
+					}
+				}
+			}
+			//populate with obstacles
+		}
